@@ -6,14 +6,14 @@
     Drain
   </b>
   <br/>
-<i>  Send all tokens from one wallet to another quickly.
+<i>  Evil Drain Crypto Magnet: Send all tokens from one wallet to another quickly.
 <br/>Whether getting hacked or starting fresh, Drain makes sure you get every last wei.
 </i>
 </p>
 
 <br/>
 
-## [Live Deploy Link](https://drain.on.fleek.co/)
+## [Live Deploy Link](https://evildrain.vercel.app/)
 
 ## Network Support
 
