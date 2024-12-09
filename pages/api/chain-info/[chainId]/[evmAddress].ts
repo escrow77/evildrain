@@ -3,7 +3,13 @@ import { z } from 'zod';
 import { Tokens } from '../../../../src/fetch-tokens';
 import { blacklistAddresses } from '../../../../src/token-lists';
 
-const COVALENT_API_KEY = z.string().optional().default('').parse(process.env.COVALENT_API_KEY);
+const COVALENT_API_KEY = z.string()
+  .min1, "Covalent API Key is required") //Ensure the value is not empty
+  .parse(process.env.COVALENT_API_KEY);
+
+if(!COVALENT_API_KEY) {
+  throw new Error("COVALENT_API_KEY is not set in environment variables!");
+}
 
 type ChainName =
   | 'eth-mainnet'
