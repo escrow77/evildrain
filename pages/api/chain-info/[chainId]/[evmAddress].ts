@@ -8,15 +8,13 @@ const getCovalentApiKey = (): string => {
   return z.string().min(1, "Covalent API Key is required").parse(apiKey);
 };
 
-let COVALENT_API_KEY: string;
+const COVALENT_API_KEY = z.string()
+  .min(1, "Covalent API Key is required")
+  .parse(process.env.COVALENT_API_KEY ?? "");  // Default to an empty string if undefined
 
-try {
-  COVALENT_API_KEY = getCovalentApiKey();
-} catch (error) {
-  console.error("COVALENT_API_KEY validation failed:", error);
-  COVALENT_API_KEY = ""; // Provide fallback or handle as necessary
+if (!COVALENT_API_KEY || COVALENT_API_KEY === "") {
+  throw new Error("COVALENT_API_KEY is not set in environment variables!");
 }
-
 
 type ChainName =
   | 'eth-mainnet'
