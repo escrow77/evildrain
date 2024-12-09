@@ -10,7 +10,7 @@ if (!COVALENT_API_KEY_ZOD) {
   throw new Error('COVALENT_API_KEY is missing from environment variables. Please set it.');
 }
 
-const COVALENT_API_KEY_ZOD = z.string().min(1, 'Covalent API Key is required').parse(COVALENT_API_KEY);  // Validates the API Key
+const COVALENT_API_KEY = z.string().min(1, 'Covalent API Key is required').parse(COVALENT_API_KEY);  // Validates the API Key
 
 type ChainName =
   | 'eth-mainnet'
