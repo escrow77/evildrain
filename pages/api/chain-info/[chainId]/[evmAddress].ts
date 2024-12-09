@@ -12,8 +12,7 @@ console.log('COVALENT_API_KEY:', process.env.COVALENT_API_KEY);
 if (!COVALENT_API_KEY) {
   throw new Error("COVALENT_APPI_KEY is not defined. Please add it to your environment variables.");
 }*/
-
-const COVALENT_API_KEY=cqt_rQY94CQHxhpRxxqxp4G6dwWrhMwY;
+const COVALENT_API_KEY = z.string().optional().default('').parse(process.env.COVALENT_API_KEY);
 
 type ChainName =
   | 'eth-mainnet'
