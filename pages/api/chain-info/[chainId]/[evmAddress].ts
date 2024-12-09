@@ -3,18 +3,14 @@ import { z } from 'zod';
 import { Tokens } from '../../../../src/fetch-tokens';
 import { blacklistAddresses } from '../../../../src/token-lists';
 
-const getCovalentApiKey = (): string => {
-  const apiKey = process.env.COVALENT_API_KEY;
-  return z.string().min(1, "Covalent API Key is required").parse(apiKey);
-};
+// Check if the COVALENT_API_KEY is available
+const COVALENT_API_KEY_ZOD = process.env.COVALENT_API_KEY;
 
-const COVALENT_API_KEY = z.string()
-  .min(1, "Covalent API Key is required")
-  .parse(process.env.COVALENT_API_KEY ?? "");  // Default to an empty string if undefined
-
-if (!COVALENT_API_KEY || COVALENT_API_KEY === "") {
-  throw new Error("COVALENT_API_KEY is not set in environment variables!");
+if (!COVALENT_API_KEY_ZOD) {
+  throw new Error('COVALENT_API_KEY is missing from environment variables. Please set it.');
 }
+
+const COVALENT_API_KEY_ZOD = z.string().min(1, 'Covalent API Key is required').parse(COVALENT_API_KEY);  // Validates the API Key
 
 type ChainName =
   | 'eth-mainnet'
