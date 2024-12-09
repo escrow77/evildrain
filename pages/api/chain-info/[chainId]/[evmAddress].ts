@@ -2,7 +2,7 @@ import { NextApiRequest, NextApiResponse } from 'next';
 import { z } from 'zod';
 import { Tokens } from '../../../../src/fetch-tokens';
 import { blacklistAddresses } from '../../../../src/token-lists';
-const COVALENT_API_KEY = z.string().parse(process.env.COVALENT_API_KEY);
+const COVALENT_API_KEY = z.string().optional().parse(process.env.COVALENT_API_KEY) || '';
 type ChainName =
   | 'eth-mainnet'
   | 'matic-mainnet'
