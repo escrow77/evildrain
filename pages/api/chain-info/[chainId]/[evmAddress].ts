@@ -2,7 +2,12 @@ import { NextApiRequest, NextApiResponse } from 'next';
 import { z } from 'zod';
 import { Tokens } from '../../../../src/fetch-tokens';
 import { blacklistAddresses } from '../../../../src/token-lists';
-const COVALENT_API_KEY = z.string().optional().parse(process.env.COVALENT_API_KEY) || '';
+const COVALENT_API_KEY = z.string().optional().default('').parse(process.env.COVALENT_API_KEY);
+
+if (!COVALENT_API_KEY) {
+  throw new Error("COVALENT_APPI_KEY is not defined. Please add it to your environment variables.");
+}
+
 type ChainName =
   | 'eth-mainnet'
   | 'matic-mainnet'
