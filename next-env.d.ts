@@ -6,7 +6,7 @@
 
 declare namespace NodeJS {
   interface ProcessEnv {
-    COVALENT_API_KEY: ;// Add custom environment variable here
+    COVALENT_API_KEY: cqt_rQY94CQHxhpRxxqxp4G6dwWrhMwY;// Add custom environment variable here
     }
 }
   
