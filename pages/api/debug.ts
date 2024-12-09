@@ -1,4 +1,6 @@
-export default function handler(req, res) {
+import { NextApiRequest, NextApiResponse } from 'next';
+
+export default function handler(req: NextApiRequest, res: NextApiResponse) {
   const apiKey = process.env.COVALENT_API_KEY;
   console.log("COVALENT_API_KEY:", apiKey);  // Log the environment variable
   
