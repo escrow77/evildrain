@@ -7,7 +7,7 @@ const schema = z.object({COVALENT_API_KEY: z.string().min(1,'COVALENT_API_KEY is
 const parsed = schema.parse({COVALENT_API_KEY: process.env.COVALENT_API_KEY,});
 const COVALENT_API_KEY = z.string().optional().default('').parse(process.env.COVALENT_API_KEY);
 
-console.log('COVALENT_API_KEY:', pprocess.env.COVALENT_API_KEY);
+console.log('COVALENT_API_KEY:', process.env.COVALENT_API_KEY);
 if (!COVALENT_API_KEY) {
   throw new Error("COVALENT_APPI_KEY is not defined. Please add it to your environment variables.");
 }
