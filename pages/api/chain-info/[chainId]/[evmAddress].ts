@@ -100,6 +100,7 @@ export default async function handler(
   req: NextApiRequest,
   res: NextApiResponse,
 ) {
+  console.log("COVALENT_API_KEY from environment:", process.env.COVALENT_API_KEY);
   try {
     const { chainId, evmAddress } = requestQuerySchema.parse(req.query);
 
