@@ -1,3 +1,7 @@
+"scripts": {
+  "build": "echo COVALENT_API_KEY=$COVALENT_API_KEY && next build"
+}
+
 {
   "name": "@create-web3/frontend",
   "version": "0.1.0",
